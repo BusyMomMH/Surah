@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Surah Audio Player</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:0;
+    background:#f5f5f5;
+    font-family:Arial,sans-serif;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    height:100vh;
+}
+
+.container{
+
+    background:white;
+    padding:30px;
+
+    border-radius:20px;
+
+    width:90%;
+    max-width:400px;
+
+    text-align:center;
+
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h1{
+    font-size:24px;
+    margin-bottom:10px;
+}
+
+#status{
+    margin-bottom:20px;
+    font-size:18px;
+}
+
+button{
+
+    padding:12px 20px;
+    margin:8px;
+
+    border:none;
+    border-radius:12px;
+
+    font-size:16px;
+    cursor:pointer;
+}
+
+.play-btn{
+    background:#4CAF50;
+    color:white;
+}
+
+.loop-btn{
+    background:#2196F3;
+    color:white;
+}
+
+.stop-btn{
+    background:#f44336;
+    color:white;
+}
+
+.small{
+    margin-top:15px;
+    font-size:13px;
+    color:#777;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎧 Audio Player</h1>
+
+<div id="status">
+Loading...
+</div>
+
+<button class="play-btn" onclick="playAudio()">
+▶ Play Again
+</button>
+
+<button class="loop-btn" onclick="toggleLoop()">
+🔁 Loop: OFF
+</button>
+
+<button class="stop-btn" onclick="stopAudio()">
+⏹ Stop
+</button>
+
+<div class="small">
+Scan another QR anytime
+</div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const id = params.get("id");
+
+let audio;
+
+let loopEnabled = false;
+
+const statusDiv = document.getElementById("status");
+
+if(id){
+
+    statusDiv.innerHTML = "Loading " + id + "...";
+
+    audio = new Audio(id + ".mp3");
+
+    audio.loop = false;
+
+    audio.play()
+    .then(()=>{
+
+        statusDiv.innerHTML =
+        "Playing: " + id;
+
+    })
+    .catch(()=>{
+
+        statusDiv.innerHTML =
+        "Tap Play to start audio";
+
+    });
+
+}else{
+
+    statusDiv.innerHTML =
+    "No audio ID found";
+
+}
+
+function playAudio(){
+
+    if(audio){
+
+        audio.currentTime = 0;
+
+        audio.play();
+
+    }
+
+}
+
+function toggleLoop(){
+
+    if(audio){
+
+        loopEnabled = !loopEnabled;
+
+        audio.loop = loopEnabled;
+
+        document.querySelector(".loop-btn").innerHTML =
+        loopEnabled
+        ? "🔁 Loop: ON"
+        : "🔁 Loop: OFF";
+
+    }
+
+}
+
+function stopAudio(){
+
+    if(audio){
+
+        audio.pause();
+
+        audio.currentTime = 0;
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
