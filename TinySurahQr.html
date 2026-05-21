@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Surah QR Small Poster Sheet</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    margin:0;
+    padding:15px;
+    background:#f5f5f5;
+}
+
+.controls{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+button{
+    padding:10px 18px;
+    font-size:14px;
+    border:none;
+    border-radius:8px;
+    background:#2d7ef7;
+    color:white;
+    cursor:pointer;
+}
+
+.page{
+    width:210mm;
+    min-height:297mm;
+    margin:auto;
+    background:white;
+    padding:8mm;
+    box-sizing:border-box;
+
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:5mm;
+}
+
+.card{
+    border:1px solid #ddd;
+    border-radius:8px;
+
+    padding:3px;
+
+    text-align:center;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+    height:38mm;
+
+    box-sizing:border-box;
+}
+
+.label{
+    margin-top:4px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.sub{
+    font-size:9px;
+    color:#777;
+}
+
+@media print{
+
+    body{
+        background:white;
+        padding:0;
+    }
+
+    .controls{
+        display:none;
+    }
+
+    .page{
+        margin:0;
+        box-shadow:none;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+    <button onclick="generateSheet()">Generate QR Sheet</button>
+    <button onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div id="pages"></div>
+
+<script>
+
+// =====================
+// FILES
+// =====================
+
+const files = [
+5,6,7,8,9,
+10,11,12,13,14,
+15,17,18,19,20
+];
+
+// =====================
+// LABELS
+// =====================
+
+const labels = {
+5:"A5",
+6:"A6",
+7:"A7",
+8:"A8",
+9:"A9",
+10:"A10",
+11:"A11",
+12:"A12",
+13:"A13",
+14:"A14",
+15:"A15",
+17:"A17",
+18:"A18",
+19:"A19",
+20:"A20"
+};
+
+// =====================
+// BASE URL
+// =====================
+
+const BASE =
+"https://busymommh.github.io/Surah/?id=A";
+
+// =====================
+// GENERATE SHEET
+// =====================
+
+function generateSheet(){
+
+    const container =
+    document.getElementById("pages");
+
+    container.innerHTML = "";
+
+    let page = createPage();
+
+    container.appendChild(page);
+
+    let count = 0;
+
+    files.forEach(num => {
+
+        const url = BASE + num;
+
+        const card =
+        document.createElement("div");
+
+        card.className = "card";
+
+        const qrBox =
+        document.createElement("div");
+
+        const label =
+        document.createElement("div");
+
+        label.className = "label";
+        label.innerText = labels[num];
+
+        const sub =
+        document.createElement("div");
+
+        sub.className = "sub";
+        sub.innerText = "Scan";
+
+        card.appendChild(qrBox);
+        card.appendChild(label);
+        card.appendChild(sub);
+
+        page.appendChild(card);
+
+        // SMALL QR SIZE
+        new QRCode(qrBox,{
+            text:url,
+            width:70,
+            height:70
+        });
+
+        count++;
+
+        // 25 per page
+        if(count % 25 === 0 &&
+           count < files.length){
+
+            page = createPage();
+
+            container.appendChild(page);
+        }
+
+    });
+
+}
+
+function createPage(){
+
+    const page =
+    document.createElement("div");
+
+    page.className = "page";
+
+    return page;
+}
+
+generateSheet();
+
+</script>
+
+</body>
+</html>
