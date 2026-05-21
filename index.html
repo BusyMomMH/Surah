@@ -1,42 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surah Player</title>
 
 <style>
 body{
   margin:0;
-  font-family: Arial;
-  background: radial-gradient(circle at top,#0f5132,#061a12);
+  font-family:Arial;
+  background: radial-gradient(circle at top,#071b12,#0f5132);
   color:white;
   text-align:center;
 }
 
-/* HEADER */
 h1{
-  margin-top:25px;
+  margin-top:20px;
   font-size:2.2rem;
   background:linear-gradient(90deg,#f4c430,#fff,#f4c430);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
 
-h2{opacity:0.8;font-size:1rem}
-
-/* CARD */
-.card{
-  margin:20px auto;
-  padding:20px;
-  width:85%;
-  max-width:420px;
-  border-radius:18px;
+.tile{
+  margin:25px auto;
+  width:90%;
+  max-width:500px;
+  padding:35px;
+  border-radius:25px;
   background:rgba(255,255,255,0.08);
-  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  box-shadow:0 0 25px rgba(244,196,48,0.2);
+  font-size:1.4rem;
+  font-weight:bold;
+  animation: glow 2.5s infinite alternate;
 }
 
-/* BUTTONS */
+@keyframes glow{
+  from{box-shadow:0 0 10px rgba(244,196,48,0.2);}
+  to{box-shadow:0 0 30px rgba(244,196,48,0.5);}
+}
+
 .controls{
   display:flex;
   flex-wrap:wrap;
@@ -46,7 +49,7 @@ h2{opacity:0.8;font-size:1rem}
 }
 
 button{
-  padding:10px 16px;
+  padding:12px 16px;
   border:none;
   border-radius:25px;
   font-weight:bold;
@@ -55,7 +58,10 @@ button{
   color:black;
 }
 
-/* OVERLAY */
+button:active{
+  transform:scale(0.95);
+}
+
 #overlay{
   position:fixed;
   inset:0;
@@ -75,7 +81,6 @@ button{
   font-weight:bold;
 }
 
-/* END SCREEN */
 #endScreen{
   position:fixed;
   inset:0;
@@ -97,11 +102,8 @@ button{
 <body>
 
 <h1 id="title">Loading...</h1>
-<h2 id="subtitle">Audio Player</h2>
 
-<div class="card">
-  <div id="status">Preparing audio...</div>
-</div>
+<div class="tile" id="tile">Loading Surah...</div>
 
 <div class="controls">
   <button onclick="playAudio()">▶ Play</button>
@@ -112,14 +114,12 @@ button{
 
 <audio id="audio" preload="auto"></audio>
 
-<!-- TAP ANYWHERE -->
 <div id="overlay">
   <div>▶ Tap Anywhere to Play</div>
 </div>
 
-<!-- END SCREEN -->
 <div id="endScreen">
-  <div style="font-size:18px;margin-bottom:10px;">Finished</div>
+  <h3 style="margin-bottom:10px">Finished</h3>
   <button onclick="replay()">🔄 Replay</button>
   <button onclick="toggleLoop()">🔁 Loop</button>
   <button onclick="closeEnd()">❌ Close</button>
@@ -127,9 +127,6 @@ button{
 
 <script>
 
-/* =========================
-   SURAH NAME MAPPING
-========================= */
 const surahMap = {
 "A1":"Al Fatiha",
 "A2":"Al Ikhlas",
@@ -149,64 +146,38 @@ const surahMap = {
 "A16":"Innal Muslimeena wal Muslimaati"
 };
 
-/* =========================
-   AUTO SHIFT AUDIO RULE
-   YOUR RULE:
-   A5.mp3 = A1
-   A6.mp3 = A2
-   => SHIFT = +4
-========================= */
+// SHIFT RULE: A5.mp3 = A1
 const SHIFT = 4;
 
-/* ========================= */
 const id = new URLSearchParams(location.search).get("id");
 const num = parseInt(id.replace("A",""));
 
-/* TITLE */
-document.getElementById("title").innerText =
-  surahMap[id] || "Surah";
+const name = surahMap[id] || "Surah";
 
-/* AUDIO FILE */
+document.getElementById("title").innerText = name;
+document.getElementById("tile").innerText = name;
+
 const audio = document.getElementById("audio");
 const fileNum = num + SHIFT;
+audio.src = `A${fileNum}.mp3`;
 
-/* safe missing handling */
-audio.src = fileNum ? `A${fileNum}.mp3` : "";
-
-/* UI */
 const overlay = document.getElementById("overlay");
 const endScreen = document.getElementById("endScreen");
-const status = document.getElementById("status");
 
 let isLoop = false;
 
-/* =========================
-   PLAY SYSTEM
-========================= */
-async function playAudio(){
-  if(!audio.src){
-    status.innerText = "Audio not available yet";
-    return;
-  }
-
-  try{
-    await audio.play();
-    overlay.style.display="none";
-    status.innerText="Playing...";
-  }catch(e){
+function playAudio(){
+  audio.play().catch(()=>{
     overlay.style.display="flex";
-  }
+  });
+  overlay.style.display="none";
 }
 
-function pauseAudio(){
-  audio.pause();
-  status.innerText="Paused";
-}
+function pauseAudio(){ audio.pause(); }
 
 function stopAudio(){
   audio.pause();
   audio.currentTime=0;
-  status.innerText="Stopped";
 }
 
 function toggleLoop(){
@@ -226,23 +197,18 @@ function closeEnd(){
   endScreen.style.display="none";
 }
 
-/* =========================
-   AUTO PLAY
-========================= */
-window.addEventListener("load", playAudio);
+window.addEventListener("load", ()=>{
+  audio.load();
+  playAudio();
+});
 
-/* TAP ANYWHERE */
-overlay.addEventListener("click", playAudio);
-
-/* =========================
-   END HANDLING FIX
-========================= */
-audio.onended = () => {
+audio.onended = ()=>{
   if(!isLoop){
     endScreen.style.display="flex";
-    status.innerText="Finished";
   }
 };
+
+overlay.addEventListener("click", playAudio);
 
 </script>
 
