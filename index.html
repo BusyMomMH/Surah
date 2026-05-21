@@ -2,39 +2,47 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Surah Instant Player</title>
+<title>Surah Player</title>
 
 <style>
-body {
-    font-family: Arial;
-    text-align: center;
-    padding: 40px;
-    background: #f7f7f7;
+
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    padding:40px;
+    background:#f5f5f5;
 }
 
-h2 {
-    margin-bottom: 20px;
+h2{
+    margin-bottom:25px;
 }
 
-button {
-    padding: 20px 35px;
-    font-size: 22px;
-    border: none;
-    border-radius: 10px;
-    background: #2d7ef7;
-    color: white;
-    cursor: pointer;
+button{
+    padding:15px 25px;
+    font-size:18px;
+    margin:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
-button:active {
-    transform: scale(0.98);
+#playBtn{
+    background:#2d7ef7;
+    color:white;
 }
 
-.small {
-    margin-top: 15px;
-    color: #666;
-    font-size: 14px;
+#loopBtn{
+    background:#444;
+    color:white;
 }
+
+#status{
+    margin-top:15px;
+    color:#666;
+    font-size:14px;
+    word-break:break-word;
+}
+
 </style>
 </head>
 
@@ -42,63 +50,151 @@ button:active {
 
 <h2 id="title">Loading...</h2>
 
-<button id="btn" onclick="playAudio()">▶ Tap if needed</button>
+<button id="playBtn" onclick="togglePlay()">
+▶ Play
+</button>
 
-<div class="small" id="status"></div>
+<button id="loopBtn" onclick="toggleLoop()">
+🔁 Loop OFF
+</button>
+
+<div id="status"></div>
 
 <script>
 
 let audio;
-let played = false;
+let isPlaying = false;
+let isLoop = false;
 
-function init() {
+// =======================
+// INIT
+// =======================
 
-    const id = new URLSearchParams(window.location.search).get("id");
+function init(){
 
-    if (!id) {
-        document.getElementById("title").innerText = "No Surah Selected";
+    const params =
+    new URLSearchParams(window.location.search);
+
+    const id = params.get("id");
+
+    if(!id){
+
+        document.getElementById("title")
+        .innerText = "No Surah Selected";
+
         return;
     }
 
-    document.getElementById("title").innerText = id;
+    document.getElementById("title")
+    .innerText = id;
 
+    // MP3 URL
     const url =
-    "https://raw.githubusercontent.com/BusyMomMH/Surah/main/" + id + ".mp3";
+    "https://raw.githubusercontent.com/BusyMomMH/Surah/main/"
+    + id +
+    ".mp3";
 
+    document.getElementById("status")
+    .innerText = url;
+
+    // CREATE AUDIO
     audio = new Audio(url);
+
     audio.load();
 
-    document.getElementById("status").innerText = "Loading audio...";
+    // TRY AUTOPLAY
+    tryAutoPlay();
 
-    // 🔥 INSTANT PLAY ATTEMPT
-    const tryPlay = () => {
-        if (played) return;
-        audio.play().then(() => {
-            played = true;
-            document.getElementById("btn").innerText = "⏸ Playing";
-        }).catch(() => {
-            document.getElementById("btn").innerText = "▶ Tap to Play";
-        });
+    // RESET BUTTON WHEN FINISHED
+    audio.onended = function(){
+
+        isPlaying = false;
+
+        document.getElementById("playBtn")
+        .innerText = "▶ Play";
     };
 
-    // try immediately
-    tryPlay();
-
-    // fallback for QR scanners / blocked autoplay
-    document.body.addEventListener("click", tryPlay, { once: true });
-
-    audio.oncanplaythrough = () => {
-        document.getElementById("status").innerText = "Ready";
-        tryPlay();
-    };
 }
 
-function playAudio() {
-    if (!audio) return;
-    audio.play();
-    document.getElementById("btn").innerText = "⏸ Playing";
+// =======================
+// TRY AUTOPLAY
+// =======================
+
+function tryAutoPlay(){
+
+    if(!audio) return;
+
+    audio.play()
+
+    .then(() => {
+
+        isPlaying = true;
+
+        document.getElementById("playBtn")
+        .innerText = "⏸ Pause";
+
+    })
+
+    .catch(() => {
+
+        document.getElementById("status")
+        .innerText +=
+        "\n\nTap Play if autoplay is blocked.";
+
+    });
+
 }
 
+// =======================
+// PLAY / PAUSE
+// =======================
+
+function togglePlay(){
+
+    if(!audio) return;
+
+    if(!isPlaying){
+
+        audio.play();
+
+        isPlaying = true;
+
+        document.getElementById("playBtn")
+        .innerText = "⏸ Pause";
+
+    }else{
+
+        audio.pause();
+
+        isPlaying = false;
+
+        document.getElementById("playBtn")
+        .innerText = "▶ Play";
+    }
+
+}
+
+// =======================
+// LOOP TOGGLE
+// =======================
+
+function toggleLoop(){
+
+    if(!audio) return;
+
+    isLoop = !isLoop;
+
+    audio.loop = isLoop;
+
+    document.getElementById("loopBtn")
+    .innerText =
+    isLoop
+    ? "🔁 Loop ON"
+    : "🔁 Loop OFF";
+
+}
+
+// START
 init();
 
 </script>
